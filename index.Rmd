@@ -11,7 +11,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 > **Research hypothesis: ** In classic horror, women face brutality with more severity than men do.
 
-In this research project, we were given the task to analyse the sentiment of texts through coding and visualisations. We decided that the  genre of horror would be the most representative of emotions, and hence an interesting topic to explore for sentiment analysis. The authors we have selected for our corpora namely Bram Stoker (1947-19120), H.P. Lovecraft (1890-1937), Mary Shelley (1797-1851), and R.L. Stevenson (1850-1894) were all present at a time when women were heavily subjugated through all spheres of society. The National Woman Suffrage Association was fighting for women’s right to vote at this time in America, whereas the United Kingdom along with Ireland saw an improvement in living conditions, by virtue of which the marriage and birth rates were at a high. This resistance towards patriarchy is what interested us, especially since this time also saw the rise of The New Woman in literature, which piqued our curiosity as to how women were represented in art. The oppressive sentiments through which women are portrayed in literature is what made us ask the question - How is literature used to further subjugate women during a time of great resistance? Our research attempts to analyse the severity of atrocities faced by women in comparison to that faced by men in the context of horror, and to see how the portrayal of gender in this particular genre is geared towards patriarchal ideologies. 
+![](assets/scream.jpeg)
+
+In this research project, we were given the task to analyse the sentiment of texts through coding and visualisations. We decided that the  genre of horror would be the most representative of emotions, and hence an interesting topic to explore for sentiment analysis. The authors we have selected for our corpora namely **Bram Stoker** (1947-19120), **H.P. Lovecraft** (1890-1937), **Mary Shelley** (1797-1851), and **R.L. Stevenson** (1850-1894) were all present at a time when women were heavily subjugated through all spheres of society. 
+
+The National Woman Suffrage Association was fighting for women’s right to vote at this time in America, whereas the United Kingdom along with Ireland saw an improvement in living conditions, by virtue of which the marriage and birth rates were at a high. This resistance towards patriarchy is what interested us, especially since this time also saw the rise of The New Woman in literature, which piqued our curiosity as to how women were represented in art. The oppressive sentiments through which women are portrayed in literature is what made us ask the question - How is literature used to further subjugate women during a time of great resistance? Our research attempts to analyse the severity of atrocities faced by women in comparison to that faced by men in the context of horror, and to see how the portrayal of gender in this particular genre is geared towards patriarchal ideologies. 
 
 
 
@@ -25,6 +29,60 @@ The corpus for H.P Lovecraft has a total of 105 documents, with the longest and 
 ## Summary
 <Add a histogram here>
 
+```{r, echo=FALSE, message=FALSE, , warning=FALSE}
+library("tm")
+library("SnowballC")
+library("RColorBrewer")
+library("syuzhet")
+library("ggplot2")
+library(tidytext)
+library(dplyr)
+library(tidyr)
+library(scales)
+library(ggthemes)
+library(magrittr)
+library(devtools)
+library(stringr)
+library(widyr)
+library(fuzzyjoin)
+library(readr)
+
+```
+
+```{r, echo=FALSE, message=FALSE, , warning=FALSE}
+stoker_corpus <- read_csv("canons/stoker.csv") %>% unnest_tokens(text, text, token="sentences") %>% select(-author)
+shelley_corpus <- read_csv("canons/shelley.csv") %>% unnest_tokens(text, text, token="sentences") %>% select(-author)
+lovecraft_corpus <- read_csv("canons/lovecraft.csv") %>% unnest_tokens(text, text, token="sentences") %>% select(-author)
+stevenson_corpus <- read_csv("canons/stevenson.csv") %>% unnest_tokens(text, text, token="sentences") %>% select(-author)
+test_corpus <- read_csv("test.csv") %>% unnest_tokens(text, text, token="sentences") %>% select(-author)
+
+
+## Pre-Processing for the Shelley Corpus
+test_section_words <- test_corpus %>%
+  filter(title == "Frankestein") %>%
+  mutate(section = row_number() %/% 10) %>%
+  filter(section > 0) %>%
+  unnest_tokens(word, text) %>%
+  filter(!word %in% stop_words$word)
+
+shelley_section_words <- shelley_corpus %>%
+  mutate(section = row_number() %/% 10) %>%
+  filter(section > 0) %>%
+  unnest_tokens(word, text) %>%
+  filter(!word %in% stop_words$word)
+```
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+test_section_words %>% 
+  pairwise_count(word, section, sort = TRUE)
+
+```
+```{r, echo=TRUE, message=TRUE, warning=FALSE}
+test_section_words %>% 
+  pairwise_count(word, section, sort = TRUE) %>% 
+  filter(item1 == "miserable" | item1 == "death" | item1 == "cry")
+```
+
+
 ### Some observations:
 
 * <Observation 1>
@@ -34,17 +92,32 @@ The corpus for H.P Lovecraft has a total of 105 documents, with the longest and 
 
 To test our hypothesis, we first extracted the characters from the texts. This was done via Named Entity Recognition in R (specifically, the maxent entity annotator using the openNLP model in English). Since the NER library seems to have a strong bias for categorising words starting in capitals as Proper Nouns, we retained the case of the characters in our cleaning phase. 
 
-One issue we ran into, especially with RL Stevenson and HP Lovecraft, is the scanty representation of female characters in general. Both authors had primarily male characters, as is evident in the visualisation above. (Frequency of Character names in Lovecraft’s short stories (n=9)).
+
+#### Lack of Female Representation
+
+One issue we ran into, especially with RL Stevenson and HP Lovecraft, is the scanty representation of female characters in general. Both authors had primarily male characters, as is evident in the visualisation below (Frequency of Character names in Lovecraft’s short stories (n=9)).
+
+![](assets/stevenson1.png)
 
 Things were a little better, in terms of gender representation, when it came to Shelley, for example, as shown below:
 
+#### Binary Sentiments
+
 Once we had these characters extracted, we manually cleaned the data to account for incorrect hits and duplicate entities. Then, we implemented a basic Sentiment Analysis using the NRC lexicon on our dataset. After doing so, and then aggregating them by sentences, we had the sentiments corresponding to characters in our texts. 
+
+![](assets/shelley5.png)
 
 (Above: On Shelley’s canonical works. We observe that female characters have, on the average, a less positive sentiment in the context surrounding them. We note that there is no observable difference in the net negative sentiment between the genders) This particular visualisation displays the discrepancies in sentiment in a binary form. 
 
+#### Beyond Binaries
+
 An obvious caveat of this process is that character names are not nearly as frequent in texts as the pronouns used to describe them (as we’ve established before). Hence, we ran a similar sentiment analysis, but now grouped by male and female pronouns. In this visualisation, we can see how in Shelley’s work, women face more negative sentiments than men do, specifically the characters Elizabeth and Cornelia. 
 
+![](assets/shelley12.png)
 
+#### What's in a name?
+
+![](assets/shelley34.png)
 
 
 ## Conclusion
@@ -67,61 +140,47 @@ While this may be a shortcoming of the language model we used in NER (openNLP), 
 ## Appendix 
 
 ### (A) Corpus Composition
-#### MPF Corpus
+#### Selected Canonical Works
 
-**Male Authors :**
+**Mary Shelley** - 5 books
 
-* M1 - Crime and Punishment, by Fyodor Dostoevsky 
+* **Frankenstein** - horror
 
-* M2 -  Les Misérables, by Victor Hugo
+* **Mathilda** (not horror but primarily deals with topics of incest faced by daughter, and her father’s eventual suicide by drowning, so there is a lot of scope for sentiment analysis)
 
-* M3 - A Tale of Two Cities, by Charles Dickens
+* **Lordore**- volumes 1-3 (again not horror but deals with tragedy of husband’s death and obstacles faced by widow and daughter, scope for gender based sentiment analysis)
 
-* M4 -  Moby-Dick; or The Whale, by Herman Melville
+**RL Stevenson** - 4 books
 
-**Female Authors :**
+* **Jekyll and Hyde** (Gothic, horror)
 
-* F1 -  North and South, by Elizabeth Gaskell
+* **Kidnapped** (deals with death, miserly characters)
 
-* F2 - Monday or Tuesday, by Virginia Woolf
+* **Catriona** - sequel to Kidnapped (deals with death, romance, imprisonment)
 
-* F3 - The Fairy Book, by Dinah Maria Mulock
+* **New Arabian Nights** (suicide, death, duels- scope for sentiment analysis)
 
-* F4 - Pride and Prejudice, by Jane Austen
+**Bram Stoker** - 5 books
 
-**Female under pen name Authors :**
+* **Dracula** - horror
 
-* P1 - Jane Eyre, by Charlotte Brontë (published initially as Currer Bell)
+* **The Lair of The White Worm** - horror
 
-* P2 - Middlemarch, by George Eliot (Mary Ann Evans)
+* **Lady Athlyne** (romance novel about women’s societal obstacles- scope for gender based sentiment analysis)
 
-* P3 - The Devil's Pool, by George Sand (Amantine Lucile Aurore Dupin)
+* **The Jewel of The Seven Stars** - horror (also deals with the rise of the New Woman i.e feminism- scope for gender based sentiment analysis)
 
-* P4 - Behind A Mask, Or A Woman’s Power, by A. M. Barnard (Louisa May Alcott)
+* **The Man** - horror and romance
 
-#### LMA Corpus
+**HP Lovecraft** - 9 short stories, 1 book
 
-**Under her real name (Louisa May Alcott):**
-
-* Flower Fables (1854)
-
-* Hospital Sketches (1863)
-
-* An Old Fashioned Girl (1869)
-
-* Little Women (1869)
-
-* Little Men (1871)
-
-* Eight Cousins (1875)
-
-* Rose in Bloom (1876)
-
-* Jack and Jill (1880)
-
-* Jo’s Boys (1886)
-
-**Under her pseudonym (A.M. Barnard):**
-
-* Behind a Mask (1866)
-* The Abbot’s Ghost (1867)
+* The Horror at Martin’s Beach
+* The Horror in The Museum
+* The Horror at Red Hook (death, cults, devil-worshipping)
+* The Haunter of The Dark (aliens)
+* The Hound (robbing graves, graphic imagery of decomposed bodies)
+* In The Vault (fiction- man trapped in vault filled with coffins)
+* The Curse of Yig - horror
+* The Ghost Eater - horror
+* The Evil Clergyman (posthumous excerpt from a letter written by HPL- deals with danger, suicide)
+* The Mound (horror+science fiction novel - deals with slavery, death, body modifications, etc.)

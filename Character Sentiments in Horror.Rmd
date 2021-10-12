@@ -95,7 +95,7 @@ As per usual, we'll fetch a corpus. Let's go with something rich in characters a
 #  gutenberg_download(c(1400, 98),
 #                     mirror = "http://mirrors.xmission.com/gutenberg/",
 #                     meta_fields = c("author", "title"))
-corpus <- read_csv("canons/stoker.csv")
+corpus <- read_csv("canons/stevenson.csv")
 ```
 
 
@@ -453,8 +453,11 @@ Sum the table by total sentiment for author, title, and words.
 ner_total_sentiment <- entities_matches_sentiment %>%
   group_by(author, title, words, kind, gender) %>%
   summarise(total = mean(sentiment))  
+write_csv(ner_total_sentiment, "stevenson_ner_sentiment.csv")
 #write_csv(ner_total_sentiment, "stoker_ner_sentiment.csv")
 #write_csv(ner_total_sentiment, "shelley_ner_sentiment.csv")
+
+#ner_total_sentiment <- read_csv("shelley_ner_sentiment.csv")
 ```
 
 ## Part 6: Visualization
@@ -542,7 +545,7 @@ colnames(df) <- c("Group", paste("Var", 1:9))
 ggradar(df)
 #radar_facet2 <- radar_facet %>% select(words)
 radar_facet2 <- radar_facet[c("words","anger", "anticipation","sadness", "fear","trust","disgust","joy","surprise")]
-ggradar(radar_facet2, grid.max=20, grid.min=0)
+ggradar(radar_facet2, grid.max=37, grid.min=0)
 ```
 ```{r radar_plot_total, message=FALSE}
 radar_facet3 <- entities_matches_sentiment %>%
