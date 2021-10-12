@@ -15,19 +15,30 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In this research project, we were given the task to analyse the sentiment of texts through coding and visualisations. We decided that the  genre of horror would be the most representative of emotions, and hence an interesting topic to explore for sentiment analysis. The authors we have selected for our corpora namely **Bram Stoker** (1947-19120), **H.P. Lovecraft** (1890-1937), **Mary Shelley** (1797-1851), and **R.L. Stevenson** (1850-1894) were all present at a time when women were heavily subjugated through all spheres of society. 
 
-The National Woman Suffrage Association was fighting for women’s right to vote at this time in America, whereas the United Kingdom along with Ireland saw an improvement in living conditions, by virtue of which the marriage and birth rates were at a high. This resistance towards patriarchy is what interested us, especially since this time also saw the rise of The New Woman in literature, which piqued our curiosity as to how women were represented in art. The oppressive sentiments through which women are portrayed in literature is what made us ask the question - How is literature used to further subjugate women during a time of great resistance? Our research attempts to analyse the severity of atrocities faced by women in comparison to that faced by men in the context of horror, and to see how the portrayal of gender in this particular genre is geared towards patriarchal ideologies. 
+The National Woman Suffrage Association was fighting for women’s right to vote at this time in America, whereas the United Kingdom along with Ireland saw an improvement in living conditions, by virtue of which the marriage and birth rates were at a high. This resistance towards patriarchy is what interested us, especially since this time also saw the rise of The New Woman in literature, which piqued our curiosity as to how women were represented in art. The oppressive sentiments through which women are portrayed in literature is what made us ask the question - </br>
+
+
+
+<center> *How is literature used to further subjugate women during a time of great resistance?* </center> </br>
+
+
+
+Our research attempts to analyse the severity of atrocities faced by women in comparison to that faced by men in the context of horror, and to see how the portrayal of gender in this particular genre is geared towards patriarchal ideologies. 
 
 
 
 ## Corpus Description
 
-For our corpora, we chose authors Mary Shelley, Bram Stoker, H.P. Lovecraft, and R.L. Stevenson. All our authors wrote novels that belong to the horror genre. We wanted to explore the advantages and limitations of sentiment analysis through this genre in order to gauge the intensity of emotions felt by characters in response to the atrocities faced by them in this particular context. Since our collection of authors is predominantly male, we decided to use gender as a parameter for our research, in order to analyse the discrepancies within the characters’ sentiments. Since the authors we have chosen did not write all their novels in the horror genre, we have selected documents within our corpora which we thought were more representative of the context we want to look into. Our in-depth analysis will be based on the smaller corpus, and we will use visualisation tools to compare and contrast the findings with that of the larger corpora. (See appendix)
+For our corpora, we chose authors Mary Shelley, Bram Stoker, H.P. Lovecraft, and R.L. Stevenson. All our authors wrote novels that belong to the horror genre. We wanted to explore the advantages and limitations of sentiment analysis through this genre in order to gauge the intensity of emotions felt by characters in response to the atrocities faced by them in this particular context. Since our collection of authors is predominantly male, we decided to use gender as a parameter for our research, in order to analyse the discrepancies within the characters’ sentiments. Since the authors we have chosen did not write all their novels in the horror genre, we have selected documents within our corpora which we thought were more representative of the context we want to look into.
 
 The corpus for H.P Lovecraft has a total of 105 documents, with the longest and shortest documents being The Case of Charles Dexter Ward and The Slaying of the Monster, respectively. The corpus has a total of 7,22,702 words. For Mary Shelley, our corpus contains 14 documents, with the longest and shortest documents being The Last Man and Prospine and Midas, respectively. The corpus has a total of 12,58,391 words. For R.L. Stevenson, there are a total of 17 documents in the corpus, with a total of 12,11,135 words. The longest and shortest documents being The Wrecker and Child’s Garden of Verses, respectively. Lastly, for Bram Stoker, there are 10 documents in the corpus, with a total of 9,85,348 words. The longest and shortest documents being The Dracula and The Watter’s Mou, respectively. In totality, our corpora of these four authors have 146 documents, with a total of 41,77,576 words.
 
 
 ## Summary
-<Add a histogram here>
+
+#### Collocations:
+
+To simplify our workflow, we have used the 'tm' package in R to generate the pairwise count of word-pairs, and consequently collocations in the text. Establishing collocations require splitting the text up into discrete chunks (or 'locations'). In our analysis, we have set this atomic length of the text to 10 sentences. 
 
 ```{r, echo=FALSE, message=FALSE, , warning=FALSE}
 library("tm")
@@ -46,6 +57,14 @@ library(stringr)
 library(widyr)
 library(fuzzyjoin)
 library(readr)
+
+#Graphics library
+library(ggiraphExtra)
+library(ggplot2)
+library(RColorBrewer)
+library(scales)
+library(tidygraph)
+
 
 ```
 
@@ -71,22 +90,30 @@ shelley_section_words <- shelley_corpus %>%
   unnest_tokens(word, text) %>%
   filter(!word %in% stop_words$word)
 ```
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-test_section_words %>% 
-  pairwise_count(word, section, sort = TRUE)
 
-```
-```{r, echo=TRUE, message=TRUE, warning=FALSE}
+
+
+**Some observations**:
+
+* Collocations over the a general/diverse corpus doesn't yield interesting results. Most frequent collocations often include natural bi-grams or word pairs, such as *Lady Lodore* and so on
+* Narrowing down on specific texts, we found some interesting results. As anecdotal evidence, we present the following collocations from Frankenstein, by Mary Shelley, where words such as *death* and *miserable* are often collocated with *elizabeth*, a prominent female character.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 test_section_words %>% 
   pairwise_count(word, section, sort = TRUE) %>% 
   filter(item1 == "miserable" | item1 == "death" | item1 == "cry")
 ```
 
+#### Corelations:
 
-### Some observations:
+For correlations, we have used the 'ggraph' package in R. We have analysed texts from all four authors separately, as n-grams (n=3,4,5,6) and have visualised the results as a Markov Chain as shown below: 
 
-* <Observation 1>
-* <Observation 2>
+![**Figure 0.1:** N-Gram Correlation Networks (Clockwise from Yellow: Shelley, Stoker, Lovecraft, Stevenson )](assets/corr.png)
+
+**Some observations**:
+
+* A Markov-Chain is directional, therefore we pay close attention to the directionality in the diagram
+* In Shelley's Chain, we observe that the word *her* is most likely to be followed by *death*. In Stevenson's Chain, we observe an evident use of the first-person, who's identiying pronoun is often followed by *blood*, *murder* and *death*. Given Stevenson's tendency to mostly write about male characters (as will be established in the following section), it is probable that the perpertrators of these actions are men 
 
 ## Data Visualisations
 
@@ -97,27 +124,29 @@ To test our hypothesis, we first extracted the characters from the texts. This w
 
 One issue we ran into, especially with RL Stevenson and HP Lovecraft, is the scanty representation of female characters in general. Both authors had primarily male characters, as is evident in the visualisation below (Frequency of Character names in Lovecraft’s short stories (n=9)).
 
-![](assets/stevenson1.png)
+![**Figure 1.1:** Distribution of characters by gender in (L) Shelley's canonical works vs (R) Stevenson's canonical works](assets/shelley-stevenson.png)
 
-Things were a little better, in terms of gender representation, when it came to Shelley, for example, as shown below:
+Things were a little better, in terms of gender representation, when it came to Shelley, for example, as shown above. As a consequence, much of the discussion that follows revolves around Shelley's Canonical Works. However, we note that similar results were seen across the other authors as well, for which we have provided some additional plots in the Appendix B. 
 
 #### Binary Sentiments
 
 Once we had these characters extracted, we manually cleaned the data to account for incorrect hits and duplicate entities. Then, we implemented a basic Sentiment Analysis using the NRC lexicon on our dataset. After doing so, and then aggregating them by sentences, we had the sentiments corresponding to characters in our texts. 
 
-![](assets/shelley5.png)
+![**Figure 2.1:** Character (binary) sentiments in Shelley's canonical works](assets/shelley5.png)
 
-(Above: On Shelley’s canonical works. We observe that female characters have, on the average, a less positive sentiment in the context surrounding them. We note that there is no observable difference in the net negative sentiment between the genders) This particular visualisation displays the discrepancies in sentiment in a binary form. 
+We observe that female characters have, on the average, a less positive sentiment in the context surrounding them. We note that there is no observable difference in the net negative sentiment between the genders) This particular visualisation displays the discrepancies in sentiment in a binary form. 
 
 #### Beyond Binaries
 
 An obvious caveat of this process is that character names are not nearly as frequent in texts as the pronouns used to describe them (as we’ve established before). Hence, we ran a similar sentiment analysis, but now grouped by male and female pronouns. In this visualisation, we can see how in Shelley’s work, women face more negative sentiments than men do, specifically the characters Elizabeth and Cornelia. 
 
-![](assets/shelley12.png)
+![**Figure 2.2:** (L) Male vs (R) female character sentiments in Shelley's canonical works](assets/shelley12.png)
 
 #### What's in a name?
 
-![](assets/shelley34.png)
+Following a similar path of investigation, we tried to map the sentiments of the words surrounding gendered pronouns in these texts. The rationale behind this was the fact that characters are seldom summoned by their names in texts, once they have been introduced. We hypothesized that using the pronoun as a proxy for the gendered character would yield insightful results. Unfortunately,  we observed that due to the sheer abundance of pronouns in the text, it is quite common for similar words to surround pronouns on both genders. Consequently, we observe that the sentiment is similar across all pronouns. The only interesting observation here was that male-gendered pronouns are 1.5 times more frequent than female-gendered pronouns - something we present as a factoid.
+
+![**Figure 2.3:** Sentiments around gendered pronouns in Shelley's canonical works](assets/shelley34.png)
 
 
 ## Conclusion
@@ -184,3 +213,6 @@ While this may be a shortcoming of the language model we used in NER (openNLP), 
 * The Ghost Eater - horror
 * The Evil Clergyman (posthumous excerpt from a letter written by HPL- deals with danger, suicide)
 * The Mound (horror+science fiction novel - deals with slavery, death, body modifications, etc.)
+
+### (B) Additional Plots
+![](assets/stevenson2.png)
