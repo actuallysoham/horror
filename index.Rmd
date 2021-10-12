@@ -1,0 +1,127 @@
+---
+title: "Gender in 19th C Horror : The Rise of the Bridezilla"
+author: "Auntora Mitra, Mukesh Sharma, Nitya Poddar, and Soham De (GL)"
+date: "13/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+> **Research hypothesis: ** In classic horror, women face brutality with more severity than men do.
+
+In this research project, we were given the task to analyse the sentiment of texts through coding and visualisations. We decided that the  genre of horror would be the most representative of emotions, and hence an interesting topic to explore for sentiment analysis. The authors we have selected for our corpora namely Bram Stoker (1947-19120), H.P. Lovecraft (1890-1937), Mary Shelley (1797-1851), and R.L. Stevenson (1850-1894) were all present at a time when women were heavily subjugated through all spheres of society. The National Woman Suffrage Association was fighting for women’s right to vote at this time in America, whereas the United Kingdom along with Ireland saw an improvement in living conditions, by virtue of which the marriage and birth rates were at a high. This resistance towards patriarchy is what interested us, especially since this time also saw the rise of The New Woman in literature, which piqued our curiosity as to how women were represented in art. The oppressive sentiments through which women are portrayed in literature is what made us ask the question - How is literature used to further subjugate women during a time of great resistance? Our research attempts to analyse the severity of atrocities faced by women in comparison to that faced by men in the context of horror, and to see how the portrayal of gender in this particular genre is geared towards patriarchal ideologies. 
+
+
+
+## Corpus Description
+
+For our corpora, we chose authors Mary Shelley, Bram Stoker, H.P. Lovecraft, and R.L. Stevenson. All our authors wrote novels that belong to the horror genre. We wanted to explore the advantages and limitations of sentiment analysis through this genre in order to gauge the intensity of emotions felt by characters in response to the atrocities faced by them in this particular context. Since our collection of authors is predominantly male, we decided to use gender as a parameter for our research, in order to analyse the discrepancies within the characters’ sentiments. Since the authors we have chosen did not write all their novels in the horror genre, we have selected documents within our corpora which we thought were more representative of the context we want to look into. Our in-depth analysis will be based on the smaller corpus, and we will use visualisation tools to compare and contrast the findings with that of the larger corpora. (See appendix)
+
+The corpus for H.P Lovecraft has a total of 105 documents, with the longest and shortest documents being The Case of Charles Dexter Ward and The Slaying of the Monster, respectively. The corpus has a total of 7,22,702 words. For Mary Shelley, our corpus contains 14 documents, with the longest and shortest documents being The Last Man and Prospine and Midas, respectively. The corpus has a total of 12,58,391 words. For R.L. Stevenson, there are a total of 17 documents in the corpus, with a total of 12,11,135 words. The longest and shortest documents being The Wrecker and Child’s Garden of Verses, respectively. Lastly, for Bram Stoker, there are 10 documents in the corpus, with a total of 9,85,348 words. The longest and shortest documents being The Dracula and The Watter’s Mou, respectively. In totality, our corpora of these four authors have 146 documents, with a total of 41,77,576 words.
+
+
+## Summary
+<Add a histogram here>
+
+### Some observations:
+
+* <Observation 1>
+* <Observation 2>
+
+## Data Visualisations
+
+To test our hypothesis, we first extracted the characters from the texts. This was done via Named Entity Recognition in R (specifically, the maxent entity annotator using the openNLP model in English). Since the NER library seems to have a strong bias for categorising words starting in capitals as Proper Nouns, we retained the case of the characters in our cleaning phase. 
+
+One issue we ran into, especially with RL Stevenson and HP Lovecraft, is the scanty representation of female characters in general. Both authors had primarily male characters, as is evident in the visualisation above. (Frequency of Character names in Lovecraft’s short stories (n=9)).
+
+Things were a little better, in terms of gender representation, when it came to Shelley, for example, as shown below:
+
+Once we had these characters extracted, we manually cleaned the data to account for incorrect hits and duplicate entities. Then, we implemented a basic Sentiment Analysis using the NRC lexicon on our dataset. After doing so, and then aggregating them by sentences, we had the sentiments corresponding to characters in our texts. 
+
+(Above: On Shelley’s canonical works. We observe that female characters have, on the average, a less positive sentiment in the context surrounding them. We note that there is no observable difference in the net negative sentiment between the genders) This particular visualisation displays the discrepancies in sentiment in a binary form. 
+
+An obvious caveat of this process is that character names are not nearly as frequent in texts as the pronouns used to describe them (as we’ve established before). Hence, we ran a similar sentiment analysis, but now grouped by male and female pronouns. In this visualisation, we can see how in Shelley’s work, women face more negative sentiments than men do, specifically the characters Elizabeth and Cornelia. 
+
+
+
+
+## Conclusion
+
+In conclusion, after a lot of trial and error with visualisation tools, we were able to prove our hypothesis that women were, in fact, further subjugated by virtue of representation in literature during a time of great resistance. Our binary analysis shows how female characters had less positive sentiment surrounding them than male characters did. Additionally, our more in-depth analysis proved that female characters faced more complex emotions, such as sadness, fear, and anticipation, whereas the male characters were more inclined towards sentiments such as joy. Further visualisations also emerged as we saw that male characters were more likely to perpetrate atrocities and killings around them, leaving us with the inference that their female counterparts were the possible victims to these said atrocities. The victimisation of women in these novels show a clear hierarchy in the power dynamics between male and female characters, proving that the pervasive nature of patriarchal ideologies in literature were omnipresent even at a time when art saw the rise of The New Woman. 
+
+## Reflection
+
+As a language, R is very useful in general for statistical data analysis. Among many other reasons for this, R is naturally vectorised (that is, it performs operations on vectors and not individual elements) and has a very rich library support (such as tidyverse, ggplot etc) which make it convenient and quick to analyse and visualise data.
+
+On the flipside, being developed primarily by and for statisticians, R isn’t as user friendly as Python. Assignment operations and 1-indexing are among the many syntactical anomalies in R which may be non-intuitive for people new to the language. Furthermore, while it has decent library support, it is yet to build the kind of ecosystem Python enjoys. As an example, cleanNLP doesn’t work with R. Being an interpreted language, it is also not particularly efficient or secure for real-life applications.
+
+R gave us the flexibility to analyse the data exactly in the way we wanted to. We weren’t constrained by the plots and analyses available in Voyant. Among some of the things we accomplished in R (which aren’t easy in Voyant) were custom cleaning of metadata, sentiment analysis, entity recognition, data cleaning and so on. Among less important things, R allowed us to present our analysis in a more aesthetically appealing way than the default Voyant plots. It allowed us to fine-tune parameters much more than Voyant could.
+
+While this may be a shortcoming of the language model we used in NER (openNLP), the Entity Recognition in R isn’t accurate and often leads to bad hits. We have noticed a tendency of the Maxent Entity Annotator to classify any noun beginning with a capital letter as a Proper noun. The Sentiment Analysis is also fairly primitive in R, as it is essentially implemented by trivial string comparisons. It doesn’t take into account various forms and multiple meanings of words in the English vocabulary. We believe this significantly affects the quality of results we get from R. Furthermore, more specific to our analysis, it was quite hard to establish the relations between various parts of speech with each other. For example, if “A inflicts harm on B”, it is hard to isolate the portrayed state of A and B without some form of an attention model (perhaps, like a Transformer). 
+
+
+
+
+## Appendix 
+
+### (A) Corpus Composition
+#### MPF Corpus
+
+**Male Authors :**
+
+* M1 - Crime and Punishment, by Fyodor Dostoevsky 
+
+* M2 -  Les Misérables, by Victor Hugo
+
+* M3 - A Tale of Two Cities, by Charles Dickens
+
+* M4 -  Moby-Dick; or The Whale, by Herman Melville
+
+**Female Authors :**
+
+* F1 -  North and South, by Elizabeth Gaskell
+
+* F2 - Monday or Tuesday, by Virginia Woolf
+
+* F3 - The Fairy Book, by Dinah Maria Mulock
+
+* F4 - Pride and Prejudice, by Jane Austen
+
+**Female under pen name Authors :**
+
+* P1 - Jane Eyre, by Charlotte Brontë (published initially as Currer Bell)
+
+* P2 - Middlemarch, by George Eliot (Mary Ann Evans)
+
+* P3 - The Devil's Pool, by George Sand (Amantine Lucile Aurore Dupin)
+
+* P4 - Behind A Mask, Or A Woman’s Power, by A. M. Barnard (Louisa May Alcott)
+
+#### LMA Corpus
+
+**Under her real name (Louisa May Alcott):**
+
+* Flower Fables (1854)
+
+* Hospital Sketches (1863)
+
+* An Old Fashioned Girl (1869)
+
+* Little Women (1869)
+
+* Little Men (1871)
+
+* Eight Cousins (1875)
+
+* Rose in Bloom (1876)
+
+* Jack and Jill (1880)
+
+* Jo’s Boys (1886)
+
+**Under her pseudonym (A.M. Barnard):**
+
+* Behind a Mask (1866)
+* The Abbot’s Ghost (1867)

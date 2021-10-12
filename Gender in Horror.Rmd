@@ -1,0 +1,275 @@
+---
+title: "Gender Dynamics in Horror"
+author: "Soham De"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+
+# Case Study: Gender Dynamics in Horror 
+
+We suspect that women are in the receiving end of more brutality and violence than men in 19th horror literature. This stems from the general socio-economic inequality prevalent during the times, where women were under a lot more restrictions and subject to more atrocities than their male counterparts. 
+
+## Null Hypothesis:
+
+There is no difference in the way men and women are depicted/ treated in the horror genre.
+
+## Load Libraries
+
+```{r load_libraries}
+library(gutenbergr)
+library(tidytext)
+library(tidyverse)
+
+```
+
+## Import Data
+
+```{r}
+lovecraft_import <- read_csv("lovecraft.csv")
+shelley_import <- read_csv("shelley.csv")
+stoker_import <- read_csv("stoker.csv")
+stevenson_import <- read_csv("stevenson.csv")
+```
+## Modelling Data
+
+### Adding Gender
+Now that we have our data in place, we can start adding complexity to the data model. We can start by simply separating these authors by gender. Since, Lovecraft, Stevenson, and Stocker are all men, we can club them together.
+
+```{r male_authors}
+male_authors <- bind_rows(lovecraft_import,stevenson_import,stoker_import)
+male_authors <- male_authors %>% 
+                mutate(gender ="male")
+```
+
+```{r female_authors}
+female_authors <-bind_rows(shelley_import) %>% 
+                 mutate(gender= "female")
+```
+
+We can then bind both tables together.
+
+```{r all_authors}
+all_authors <- bind_rows(male_authors, female_authors)
+```
+
+### Tidying the Text
+
+```{r tidy_all_authors}
+
+tidy_all_authors <- all_authors %>% 
+                    unnest_tokens(word, text) %>% 
+                    anti_join(stop_words)
+
+tidy_lovecraft <- lovecraft_import %>% 
+                    unnest_tokens(word, text) %>% 
+                    anti_join(stop_words)
+tidy_stevenson <- stevenson_import %>% 
+                    unnest_tokens(word, text) %>% 
+                    anti_join(stop_words)
+tidy_stoker <- stoker_import %>% 
+                    unnest_tokens(word, text) %>% 
+                    anti_join(stop_words)
+tidy_shelley <- shelley_import %>% 
+                    unnest_tokens(word, text) %>% 
+                    anti_join(stop_words)
+```
+
+
+### Creating operationalizing romance
+
+Now that we have our corpus in place, we can do some more "feature engineering" by marking each time one of our two operational concepts occurs: romance and technology.
+
+We can create two separate lexicons and join them to the table.
+
+```{r adding_romance}
+romance_words <- c("love","romance", "romantic", "desire", "relationship", "couple")
+
+romance_df <- tibble(word = romance_words, romance = TRUE)
+
+technology_words <- c("science", "technology", "rational", "rationality","thinking","progress")
+
+technology_df <- tibble(word = technology_words, technology = TRUE)
+
+violence_words <- c("death", "blood", "hit", "kill","murder","body")
+
+violence_df <- tibble(word = violence_words, violence = TRUE)
+```
+
+We can add these words by using a left_join. A left join will keep everything on left hand side 
+
+```{r tagged_words}
+all_authors_tagged <- tidy_all_authors %>% 
+                                left_join(romance_df) %>% 
+                                left_join(technology_df) %>% 
+                                left_join(violence_df)
+
+```
+
+We can then establish some basic percentages for the use of each word.
+
+```{r calculate_words}
+all_authors_table <- all_authors_tagged %>% 
+                     group_by(gender) %>% 
+                     count(romance, technology, violence) %>% 
+                     mutate (percent = n/sum(n)*100)
+```
+
+
+## Setting up NER
+
+Now, install the following libraries: 
+
+```{r error=FALSE, eval= FALSE, warning=FALSE, message=FALSE}
+install.packages("rJava")
+install.packages("openNLP")
+install.packages("NLP")
+```
+
+
+Now load the NLP packages and the Tidy low-calorie special sauce. There's an extra library here, `textclean`, that we'll use for some basic text cleaning.
+
+```{r echo=TRUE, results='hide', message=FALSE}
+#NLP Libraries
+library(rJava)
+library(openNLP)
+library(NLP)
+
+
+#Tidy data manipulation
+library(stringr)
+library(dplyr)
+library(tidyr)
+library(tidytext)
+library(readr)
+library(stringi)
+library(textclean)
+
+#Corpus ingest
+library(gutenbergr)
+
+#Helper library
+library(sqldf)
+
+#Graphics library
+library(ggiraphExtra)
+library(ggplot2)
+library(RColorBrewer)
+library(scales)
+```
+
+
+
+### Set the NLP pipeline
+
+Since we have to use a particular language model to do the analysis, we have to create a pipeline to that model. OpenNLP has a couple of functions that do this for us. We want to annotate words, sentences, and finally based on that knowledge, entities within the text. The following commands load all of these models into memory.
+
+```{r initiate_pipeline}
+#set pipeline
+wordAnnotator <- Maxent_Word_Token_Annotator(language = "en")
+sentenceAnnotator <- Maxent_Sent_Token_Annotator(language = "en")
+characterAnnotatorEN <- Maxent_Entity_Annotator(language = "en", kind = "person")
+
+pipeline <- list(sentenceAnnotator,
+                 wordAnnotator,
+                 characterAnnotatorEN)
+```
+
+### Initiating the process
+
+#### Chunking and extracting entities
+
+>The following procedure will take a while
+
+NER with openNLP is a pretty intense and, I suspect, inefficient process. Part of the issue is that if you have a particularly large data set the amount of memory it takes up will balloon quite rapidly. This will crash everything. To avoid this, I've written a custom script to "chunk" the data into smaller pieces, run the NER function, and then piece it all together. What's more, since the tokenizer wants the information in a particular way, we have to preserve our metadata. This also requires us to decompose and recompose our data frame.
+
+We could create a function for this, or just run this as a double `for` loop in which the loop runs through each `title` in the data frame and chunks it up into different sections and returns the extracted entities with the title and author in tact. **Note that this procedure takes a long time to run**. Make sure you have the corpus you want.
+
+There are a couple of variables you can change to switch up how the processing goes. If the corpus is too large to process, set `chunk_size = 100000` to a smaller number. If you modified your corpus and added variables such as `gender`,`nationality`,`race`, this process will drop those features. You have to modify the line: `mutate(author = corpus_text_str$author[j], title = corpus_text_str$title[j])`. Simply, add the name of your column and the location in the original dataframe and it should add. i.e. `mutate(author = corpus_text_str$author[j], title = corpus_text_str$title[j], gender = corpus_text_str$gender[j] )`.  
+
+```{r}
+corpus_clean <- lovecraft_import %>%
+  filter(text != "") %>%
+  mutate(text = str_replace_all(text, "_", " ")) %>%
+  mutate(text = replace_contraction(text)) %>%
+  mutate(text = replace_curly_quote(text))
+
+corpus_text <- corpus_clean %>%
+  group_by(title) %>%
+  mutate(text = paste(as.character(text), collapse = " ")) %>%
+  distinct() %>%
+  ungroup()
+
+corpus_text_str <- corpus_text %>%
+  group_by(title) %>%
+  mutate(text = list(as.String(text)))
+```
+
+
+```{r NER_chunker, message=FALSE}
+#create empty df
+full_df2 = as.data.frame(NULL)
+chunk_size = 10000
+
+for (j in 1:nrow(corpus_text_str)) {
+  #get number of chunks
+  chunk <- nchar(corpus_text_str$text[j]) %/% chunk_size
+  text <- unlist(corpus_text_str$text[j])
+  text <- as.String(text)
+  
+  #Loop runs through the text section by section and reads each chunk into a df
+  
+  for (i in 1:chunk) {
+    print(paste0(
+      "Processing title: ",
+      corpus_text_str$title[j],
+      " - section ",
+      i,
+      " of ",
+      chunk
+    ))
+    temp_df = NULL
+    
+    if (i == 1) {
+      m = 1
+    }
+    
+    if (i == chunk) {
+      m = n + 1
+      n = (nchar(text))
+    }
+    else{
+      n <- m + chunk_size
+    }
+    
+    temp_string = text[m, n]
+    
+    temp_ann <- NLP::annotate(temp_string, pipeline)
+    
+    temp_df <-  temp_ann %>%
+      as.data.frame %>% 
+      filter(type != "word")
+    
+    temp_df <- temp_df %>%
+      mutate(words = str_sub(
+        as.character(temp_string),
+        start = temp_df$start,
+        end = temp_df$end
+      )) %>%
+      unnest_wider(features)
+    
+    temp_df <- temp_df %>%
+      mutate(author = corpus_text_str$author[j], title = corpus_text_str$title[j]) 
+      #This is where you would include your added variable
+      
+    
+    #stitch it all together
+    full_df2 <- full_df2 %>%
+      bind_rows(temp_df)
+    
+    m <- m + chunk_size
+  }
+}
+
+```
