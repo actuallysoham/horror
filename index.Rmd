@@ -117,12 +117,14 @@ For correlations, we have used the 'ggraph' package in R. We have analysed texts
 
 ## Data Visualisations
 
-To test our hypothesis, we first extracted the characters from the texts. This was done via Named Entity Recognition in R (specifically, the maxent entity annotator using the openNLP model in English). Since the NER library seems to have a strong bias for categorising words starting in capitals as Proper Nouns, we retained the case of the characters in our cleaning phase. 
+To test our hypothesis, we first extracted the characters from the texts. This was done via Named Entity Recognition in R (specifically, the Maxent Entity Annotator using the openNLP model in English). Since the NER library seems to have a strong bias for categorising words starting in capitals as Proper Nouns, we retained the case of the characters in our cleaning phase. 
+
+After extracting the characters, we followed a tedious workflow of manually screening the annotations for false hits and duplicates. Finally, we manually annotated the gender field for each *person* entity. This was quite tedious and at times, an ambigous process, especially when the name doesn't easily reveal the gender.  
 
 
 #### Lack of Female Representation
 
-One issue we ran into, especially with RL Stevenson and HP Lovecraft, is the scanty representation of female characters in general. Both authors had primarily male characters, as is evident in the visualisation below (Frequency of Character names in Lovecraft’s short stories (n=9)).
+One issue we ran into, especially with RL Stevenson and HP Lovecraft, is the scanty representation of female characters in their works. Both authors wrote around primarily male characters, as is evident in the visualisation below:
 
 ![**Figure 1.1:** Distribution of characters by gender in (L) Shelley's canonical works vs (R) Stevenson's canonical works](assets/shelley-stevenson.png)
 
@@ -130,15 +132,17 @@ Things were a little better, in terms of gender representation, when it came to 
 
 #### Binary Sentiments
 
-Once we had these characters extracted, we manually cleaned the data to account for incorrect hits and duplicate entities. Then, we implemented a basic Sentiment Analysis using the NRC lexicon on our dataset. After doing so, and then aggregating them by sentences, we had the sentiments corresponding to characters in our texts. 
+Once we had these characters extracted, we manually cleaned the data to account for incorrect hits and duplicate entities. Then, we implemented a basic Sentiment Analysis using the NRC lexicon on our dataset. After doing so, and then aggregating them by sentences, we had the sentiments corresponding to characters in our texts. We note that these do not directly reveal the sentiment of the character, but only the sentiment of the context surrounding the places where they appear in the text.
 
-![**Figure 2.1:** Character (binary) sentiments in Shelley's canonical works](assets/shelley5.png)
+![](assets/stevelovestoker.png)
 
-We observe that female characters have, on the average, a less positive sentiment in the context surrounding them. We note that there is no observable difference in the net negative sentiment between the genders) This particular visualisation displays the discrepancies in sentiment in a binary form. 
+![**Figure 2.1:** (Bottom) Character sentiments in Shelley's canonical works (Top) Sentiments in Stevenson, Lovecraft and Stokers' works](assets/shelley5.png)
+
+We observe that female characters have, on the average, a less positive sentiment in the context surrounding them. We note that there is no observable difference in the net negative sentiment between the genders. This particular visualisation displays the discrepancies in sentiment in a binary (positive vs negative) form.  
 
 #### Beyond Binaries
 
-An obvious caveat of this process is that character names are not nearly as frequent in texts as the pronouns used to describe them (as we’ve established before). Hence, we ran a similar sentiment analysis, but now grouped by male and female pronouns. In this visualisation, we can see how in Shelley’s work, women face more negative sentiments than men do, specifically the characters Elizabeth and Cornelia. 
+In this visualisation, we utilise all 8 sentiments availabel in the NRC lexicon and use them to analyse Shelley’s work. We clearly notice that women face more negative sentiments (such as fear and sadness) than men do, specifically the characters *Elizabeth* and *Cornelia*. An obvious caveat of this process is that character names are not nearly as frequent in texts as the pronouns used to describe them (as we’ve established before). Hence, we ran a similar sentiment analysis, but now grouped by male and female pronouns. 
 
 ![**Figure 2.2:** (L) Male vs (R) female character sentiments in Shelley's canonical works](assets/shelley12.png)
 
@@ -215,4 +219,8 @@ While this may be a shortcoming of the language model we used in NER (openNLP), 
 * The Mound (horror+science fiction novel - deals with slavery, death, body modifications, etc.)
 
 ### (B) Additional Plots
-![](assets/stevenson2.png)
+![**Figure B.1:** Binary Character Sentiments; Clockwise: Stevenson, Shelley, Lovecraft, Stoker](assets/agg1.png)
+
+![**Figure B.2:** Frequency of Male vs Female Characters; Clockwise: Stevenson, Stoker, Shelley, Lovecraft](assets/agg2.png)
+
+![**Figure B.3:** Markov-Chain Networks for all authors, for different sized n-grams](assets/agg3.png)

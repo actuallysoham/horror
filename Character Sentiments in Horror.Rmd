@@ -95,7 +95,7 @@ As per usual, we'll fetch a corpus. Let's go with something rich in characters a
 #  gutenberg_download(c(1400, 98),
 #                     mirror = "http://mirrors.xmission.com/gutenberg/",
 #                     meta_fields = c("author", "title"))
-corpus <- read_csv("canons/stevenson.csv")
+corpus <- read_csv("canons/stoker.csv")
 ```
 
 
@@ -453,7 +453,8 @@ Sum the table by total sentiment for author, title, and words.
 ner_total_sentiment <- entities_matches_sentiment %>%
   group_by(author, title, words, kind, gender) %>%
   summarise(total = mean(sentiment))  
-write_csv(ner_total_sentiment, "stevenson_ner_sentiment.csv")
+#write_csv(ner_total_sentiment, "lovecraft_ner_sentiment.csv")
+#write_csv(ner_total_sentiment, "stevenson_ner_sentiment.csv")
 #write_csv(ner_total_sentiment, "stoker_ner_sentiment.csv")
 #write_csv(ner_total_sentiment, "shelley_ner_sentiment.csv")
 

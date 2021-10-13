@@ -5,12 +5,12 @@ import csv
 
 #s = "abc123AUG|GAC|UGAasdfg789"
 pattern = 'Stoker_Bram_([0-9]*)-(.*?)\"'
-author = "HP Lovecraft"
+author = "Bram Stoker"
 lovecraft_table = []
 
 # Get the list of all files and directories
 # in the root directory
-path = "canons/lovecraft"
+path = "canons/stoker"
 dir_list = os.listdir(path)
 for file in dir_list:
 	title = file.strip(".txt")
@@ -26,7 +26,7 @@ print(len(lovecraft_table[0]))
 		
 header = ['text', 'title', 'author']
 
-with open('canons/lovecraft.csv', 'wb') as f:
+with open('canons/stoker.csv', 'wb') as f:
     writer = csv.writer(f)
 
     # write the header
